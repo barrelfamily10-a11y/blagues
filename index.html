@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ta blague du jour !</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --yellow: #FFE156;
+      --orange: #FF7043;
+      --dark: #1a1a2e;
+      --card: #fffdf4;
+      --green: #4CAF50;
+      --red: #F44336;
+      --shadow: 4px 4px 0px #1a1a2e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background-image: radial-gradient(circle at 20% 20%, #2d2b55 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, #1a3a2e 0%, transparent 50%);
+      overflow: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: '😂 😄 🤣 😆 🎪 😜 😝 🤡 😹 😁';
+      position: fixed;
+      top: -20px; left: 0; right: 0;
+      font-size: 28px;
+      letter-spacing: 24px;
+      opacity: 0.08;
+      white-space: nowrap;
+      animation: drift 18s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes drift {
+      from { transform: translateX(-100px); }
+      to   { transform: translateX(100px); }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+      animation: popIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+
+    .header h1 {
+      font-family: 'Lobster', cursive;
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      color: var(--yellow);
+      text-shadow: 3px 3px 0 var(--orange), 5px 5px 0 rgba(0,0,0,0.3);
+      letter-spacing: 1px;
+    }
+
+    .header p {
+      color: #aaa;
+      margin-top: 6px;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 3px solid var(--dark);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 520px;
+      padding: 36px 32px;
+      position: relative;
+      animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -2px; left: 20px;
+      width: 60px; height: 14px;
+      background: var(--yellow);
+      border-radius: 0 0 8px 8px;
+      border: 3px solid var(--dark);
+      border-top: none;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.7) translateY(20px); opacity: 0; }
+      to   { transform: scale(1) translateY(0);      opacity: 1; }
+    }
+
+    /* Loading state */
+    .loading {
+      text-align: center;
+      padding: 20px 0;
+    }
+    .spinner {
+      font-size: 3rem;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    .loading p { margin-top: 12px; color: #888; font-size: 0.9rem; }
+
+    /* Question */
+    .joke-question {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--dark);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    /* Answer reveal */
+    .reveal-btn {
+      background: var(--yellow);
+      border: 3px solid var(--dark);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 12px 24px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      width: 100%;
+      transition: transform 0.1s, box-shadow 0.1s;
+      color: var(--dark);
+    }
+    .reveal-btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--dark); }
+    .reveal-btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--dark); }
+
+    .joke-answer {
+      display: none;
+      margin-top: 20px;
+      padding: 16px 20px;
+      background: #fff9e6;
+      border: 2px dashed var(--orange);
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--orange);
+      animation: slideDown 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-10px); opacity: 0; }
+      to   { transform: translateY(0);     opacity: 1; }
+    }
+    .joke-answer.visible { display: block; }
+
+    /* Votes */
+    .vote-section {
+      display: none;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 2px dashed #ddd;
+      text-align: center;
+    }
+    .vote-section.visible { display: block; }
+    .vote-section p {
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 14px;
+      font-size: 0.95rem;
+    }
+    .vote-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+    .vote-btn {
+      font-size: 2rem;
+      background: white;
+      border: 3px solid var(--dark);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      width: 72px; height: 72px;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .vote-btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--dark); }
+    .vote-btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--dark); }
+
+    /* Feedback after vote */
+    .feedback {
+      display: none;
+      margin-top: 20px;
+      text-align: center;
+      animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    .feedback.visible { display: block; }
+    .feedback-emoji { font-size: 3rem; }
+    .feedback-text {
+      font-weight: 800;
+      font-size: 1.1rem;
+      margin-top: 8px;
+      color: var(--dark);
+    }
+    .feedback-sub {
+      font-size: 0.85rem;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    /* Next joke button */
+    .next-btn {
+      margin-top: 20px;
+      background: var(--dark);
+      color: var(--yellow);
+      border: 3px solid var(--dark);
+      border-radius: 12px;
+      box-shadow: 4px 4px 0 var(--orange);
+      padding: 12px 24px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      width: 100%;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .next-btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--orange); }
+    .next-btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--orange); }
+
+    /* Error state */
+    .error {
+      text-align: center;
+      color: #c0392b;
+      font-weight: 700;
+    }
+    .error .error-emoji { font-size: 2.5rem; }
+    .error p { margin-top: 10px; font-size: 0.9rem; color: #888; }
+
+    /* No more jokes */
+    .no-jokes {
+      text-align: center;
+    }
+    .no-jokes .emoji { font-size: 3rem; }
+    .no-jokes p { margin-top: 12px; font-weight: 700; color: #555; }
+
+    .badge {
+      display: inline-block;
+      background: var(--orange);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 2px solid var(--dark);
+      margin-left: 8px;
+      vertical-align: middle;
+      letter-spacing: 0.5px;
+    }
+
+    .config-notice {
+      margin-top: 20px;
+      font-size: 0.78rem;
+      color: #666;
+      text-align: center;
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Ta blague du jour !</h1>
+    <p>Merci d'avoir répondu au questionnaire 😄</p>
+  </div>
+
+  <div class="card" id="card">
+    <div class="loading" id="loading">
+      <span class="spinner">🎲</span>
+      <p>On cherche une blague pour toi…</p>
+    </div>
+
+    <div id="joke-content" style="display:none">
+      <div class="joke-question" id="joke-question"></div>
+      <button class="reveal-btn" id="reveal-btn" onclick="revealAnswer()">👀 Voir la réponse</button>
+      <div class="joke-answer" id="joke-answer"></div>
+
+      <div class="vote-section" id="vote-section">
+        <p>Cette blague t'a fait rire ? <span class="badge">TON AVIS COMPTE</span></p>
+        <div class="vote-buttons">
+          <button class="vote-btn" onclick="vote('up')" title="Bonne blague !">👍</button>
+          <button class="vote-btn" onclick="vote('down')" title="Nulle cette blague...">👎</button>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback">
+        <div class="feedback-emoji" id="feedback-emoji"></div>
+        <div class="feedback-text" id="feedback-text"></div>
+        <div class="feedback-sub" id="feedback-sub"></div>
+        <button class="next-btn" onclick="loadJoke()">🎲 Une autre blague !</button>
+      </div>
+    </div>
+
+    <div id="error-content" style="display:none" class="error">
+      <div class="error-emoji">😵</div>
+      <div id="error-message">Impossible de charger les blagues.</div>
+      <p>Vérifie ta clé API et l'ID de la base dans le code.</p>
+    </div>
+
+    <div id="no-jokes" style="display:none" class="no-jokes">
+      <div class="emoji">🏆</div>
+      <p>Toutes les blagues ont été notées !<br/>Reviens quand de nouvelles seront ajoutées 😄</p>
+    </div>
+  </div>
+
+  <div class="config-notice" id="config-notice" style="display:none">
+    ⚠️ <strong>Configuration manquante</strong> — Remplace <code>TON_TOKEN_ICI</code> dans le code par ton token Airtable.
+  </div>
+
+  <script>
+    // ============================================================
+    // 🔧 CONFIGURATION — À MODIFIER
+    // ============================================================
+    const AIRTABLE_TOKEN = 'TON_TOKEN_ICI'; // Remplace par ton token Airtable
+    const BASE_ID        = 'appQk16EIjtQPfLOo';
+    const TABLE_NAME     = 'Blagues';
+    const FIELD_QUESTION = 'Blague_question';
+    const FIELD_REPONSE  = 'Blague_réponse';
+    // ============================================================
+
+    // Stocke les IDs des blagues déjà vues (dans la session)
+    let seenIds = JSON.parse(localStorage.getItem('blagues_vues') || '[]');
+    let currentRecord = null;
+
+    function saveSeenIds() {
+      localStorage.setItem('blagues_vues', JSON.stringify(seenIds));
+    }
+
+    async function loadJoke() {
+      // Reset UI
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('joke-content').style.display = 'none';
+      document.getElementById('error-content').style.display = 'none';
+      document.getElementById('no-jokes').style.display = 'none';
+      document.getElementById('joke-answer').classList.remove('visible');
+      document.getElementById('vote-section').classList.remove('visible');
+      document.getElementById('feedback').classList.remove('visible');
+      document.getElementById('reveal-btn').style.display = 'block';
+
+      if (AIRTABLE_TOKEN === 'patD8nTSdmDY0qDCK.efb953a4be2a602d8fdcb5aa09c58baca85f80d0beefa8eaa157e6c5e52fe6df') {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('config-notice').style.display = 'block';
+        document.getElementById('error-content').style.display = 'block';
+        document.getElementById('error-message').textContent = 'Token Airtable non configuré.';
+        return;
+      }
+
+      try {
+        // Récupère toutes les blagues (sauf les supprimées = 👎)
+        const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE_NAME)}?fields[]=${encodeURIComponent(FIELD_QUESTION)}&fields[]=${encodeURIComponent(FIELD_REPONSE)}`;
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` }
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error?.message || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        const allRecords = data.records || [];
+
+        // Filtre les blagues déjà vues
+        const available = allRecords.filter(r => !seenIds.includes(r.id));
+
+        if (available.length === 0) {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('no-jokes').style.display = 'block';
+          return;
+        }
+
+        // Blague aléatoire
+        const random = available[Math.floor(Math.random() * available.length)];
+        currentRecord = random;
+
+        document.getElementById('joke-question').textContent = random.fields[FIELD_QUESTION] || '(Question manquante)';
+        document.getElementById('joke-answer').textContent   = random.fields[FIELD_REPONSE]  || '(Réponse manquante)';
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('joke-content').style.display = 'block';
+
+      } catch (e) {
+        console.error(e);
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error-content').style.display = 'block';
+        document.getElementById('error-message').textContent = `Erreur : ${e.message}`;
+      }
+    }
+
+    function revealAnswer() {
+      document.getElementById('joke-answer').classList.add('visible');
+      document.getElementById('vote-section').classList.add('visible');
+      document.getElementById('reveal-btn').style.display = 'none';
+    }
+
+    async function vote(type) {
+      if (!currentRecord) return;
+
+      document.getElementById('vote-section').classList.remove('visible');
+      const feedback = document.getElementById('feedback');
+      const emoji    = document.getElementById('feedback-emoji');
+      const text     = document.getElementById('feedback-text');
+      const sub      = document.getElementById('feedback-sub');
+
+      if (type === 'up') {
+        emoji.textContent = '🎉';
+        text.textContent  = 'Super, elle t\'a plu !';
+        sub.textContent   = 'On la garde pour la prochaine fois 😄';
+        // Juste marquer comme vue
+        seenIds.push(currentRecord.id);
+        saveSeenIds();
+      } else {
+        emoji.textContent = '🗑️';
+        text.textContent  = 'Blague nulle, supprimée !';
+        sub.textContent   = 'Elle ne reviendra plus jamais 💀';
+        // Supprimer dans Airtable
+        await deleteRecord(currentRecord.id);
+        // ET marquer comme vue localement
+        seenIds.push(currentRecord.id);
+        saveSeenIds();
+      }
+
+      feedback.classList.add('visible');
+    }
+
+    async function deleteRecord(recordId) {
+      try {
+        await fetch(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE_NAME)}/${recordId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` }
+        });
+      } catch (e) {
+        console.error('Erreur suppression:', e);
+      }
+    }
+
+    // Lancement
+    loadJoke();
+  </script>
+</body>
+</html>
